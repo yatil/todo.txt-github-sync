@@ -1,6 +1,7 @@
 <?php
 
 define("TOKEN", "37839ab482a178b818448e65f1eee882d00eb220");
+define("USERNAME", "");
 
 define("TODODIR", $argv[1]);
 define("GITHUB", "github.txt");
@@ -37,8 +38,11 @@ if ($handle) {
 }
 
 function readIssues($repo) {
-
-	$url = 'https://api.github.com/repos/'.$repo.'/issues?access_token='. TOKEN .'&state=all';
+	if (USERNAME !== "") {
+		$url = 'https://api.github.com/repos/'.$repo.'/issues?access_token='. TOKEN .'&state=all&assignee=' . USERNAME;
+	} else {
+		$url = 'https://api.github.com/repos/'.$repo.'/issues?access_token='. TOKEN .'&state=all';
+	}
 
 	$ch = curl_init($url);
 
