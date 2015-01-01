@@ -1,0 +1,16 @@
+#!/bin/bash
+
+action=$1
+shift
+
+[ "$action" = "usage" ] && {
+  echo "  Github:"
+  echo "    github"
+  echo "      Imports open github issues from projects defined in github.txt"
+  echo ""
+  exit
+}
+
+[ "$action" = "github" ] && {
+    php ~/.todo.actions.d/github.php "$TODO_DIR"
+}
