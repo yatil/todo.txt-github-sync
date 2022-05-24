@@ -78,9 +78,9 @@ function readIssues($repo) {
 
 function alreadyIn($issue) {
 	$todos = $GLOBALS['relevanttodos'];
-	foreach ($todos as $todo) {
-		if (preg_match("~".addslashes($issue['url'])."$~i", $todo['text'])) {
-			return $todo['key'];
+	foreach ($todos as $key => $todo) {
+		if (strpos($todo['text'], $issue['url']) !== false) {
+			return true;
 		}
 	}
 	return false;
