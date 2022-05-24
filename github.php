@@ -1,6 +1,6 @@
 <?php
 
-define("TOKEN", "37839ab482a178b818448e65f1eee882d00eb220");
+define("TOKEN", "");
 define("USERNAME", "");
 
 define("TODODIR", $argv[1]);
@@ -39,15 +39,18 @@ if ($handle) {
 
 function readIssues($repo) {
 	if (USERNAME !== "") {
-		$url = 'https://api.github.com/repos/'.$repo.'/issues?access_token='. TOKEN .'&state=all&assignee=' . USERNAME;
+		$url = 'https://api.github.com/repos/'.$repo.'/issues?state=all&assignee=' . USERNAME;
 	} else {
-		$url = 'https://api.github.com/repos/'.$repo.'/issues?access_token='. TOKEN .'&state=all';
+		$url = 'https://api.github.com/repos/'.$repo.'/issues?state=all';
 	}
 
 	$ch = curl_init($url);
 
 	curl_setopt($ch, CURLOPT_HEADER, 0);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array("User-Agent: yatil/todo.txt"));
+    	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+		"User-Agent: yatil/todo.txt",
+		"Authorization: token " . TOKEN
+	    ));
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
 	$jissues = curl_exec($ch);
@@ -75,9 +78,9 @@ function readIssues($repo) {
 
 function alreadyIn($issue) {
 	$todos = $GLOBALS['relevanttodos'];
-	foreach ($todos as $todo) {
-		if (preg_match("~".addslashes($issue['url'])."$~i", $todo['text'])) {
-			return $todo['key'];
+	foreach ($todos as $key => $todo) {
+		if (strpos($todo['text'], $issue['url']) !== false) {
+			return true;
 		}
 	}
 	return false;
@@ -93,7 +96,7 @@ function addIssues($data) {
 	echo NL.NL."=== ". $repo ." (".count($data["issues"]).") ===".NL.NL;
 
 	foreach ($data['issues'] as $issue) {
-		echo "--- ".$issue[title]." (#".$issue['number'].") [".$issue['state']."] ---".NL;
+		echo "--- ".$issue['title']." (#".$issue['number'].") [".$issue['state']."] ---".NL;
 		$already = alreadyIn($issue);
 		$ret = "";
 		if ($already && ($issue['state'] == 'closed')) {
@@ -102,7 +105,7 @@ function addIssues($data) {
 			echo $ret.NL.NL;
 		} elseif (!$already && ($issue['state'] == 'open')) {
 				echo "    New issue, add to the list".NL;
-				passthru(escapeshellcmd("/usr/local/bin/todo.sh add ".utf8_decode($issue[title])." (#".$issue['number'].") $owner $name ".$issue['url']), $ret);
+				passthru(escapeshellcmd("/usr/local/bin/todo.sh add ".utf8_decode($issue['title'])." (#".$issue['number'].") $owner $name ".$issue['url']), $ret);
 				echo $ret.NL.NL;
 		} else {
 			echo "    Issue ignored (already closed or open on the list)".NL;
